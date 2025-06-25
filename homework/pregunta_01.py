@@ -71,3 +71,49 @@ def pregunta_01():
 
 
     """
+    import os
+    import pandas as pd
+    import zipfile
+
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    
+    rut_in = os.path.join(root, 'input')
+    
+    fol_out = os.path.join(root, 'files', 'output')
+    
+    os.makedirs(fol_out, exist_ok=True)
+
+    ar_zip = os.path.join(root, 'files', 'input.zip')
+    
+    if not os.path.isdir(rut_in):
+        with zipfile.ZipFile(ar_zip, 'r') as file:
+            file.extractall(root)
+
+    def cargar_textos(nombre_carpeta):
+    
+        regis = []
+    
+        catg = ['positive', 'negative', 'neutral']
+    
+        for clase in catg:
+    
+            ubicacion = os.path.join(rut_in, nombre_carpeta, clase)
+    
+            if not os.path.isdir(ubicacion):
+                continue
+    
+            for name_file in os.listdir(ubicacion):
+    
+                if name_file.endswith('.txt'):
+                    file_txt = os.path.join(ubicacion, name_file)
+    
+                    with open(file_txt, encoding='utf-8') as texto:
+                        cont = texto.read().strip()
+                        regis.append({'phrase': cont, 'target': clase})
+    
+        return regis
+
+    for particion in ['train', 'test']:
+        conj = cargar_textos(particion)
+        table = pd.DataFrame(conj)
+        table.to_csv(os.path.join(fol_out, f'{particion}_dataset.csv'), index=False)
